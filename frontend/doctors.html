@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doctors - HealthCare Reception Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@300;600&display=swap" rel="stylesheet">
+<style>
+body { background-color: #fdfae7; font-family: 'Inter', sans-serif; }
+.bg-main { background-color: #fffcef; }
+.text-main-accent { color: #659bb9; }
+.bg-main-accent { background-color: #659bb9; }
+.font-josefin-semibold { font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+.font-josefin-light { font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+.bg-sidebar { background-color: #6998B6; }
+.hover-sidebar { background-color: #5a86a3; }
+.table-row:hover { background-color: #fdfae7; transition: background-color 0.2s; }
+</style>
+</head>
+<body class="min-h-screen flex">
+<aside class="w-64 bg-sidebar text-white flex flex-col">
+  <div class="p-6 text-center border-b border-white/20">
+    <div class="w-16 h-16 mx-auto mb-4 border-4 border-white rounded-full flex items-center justify-center bg-sidebar">
+      <span class="text-3xl font-bold text-white">+</span>
+    </div>
+    <h1 class="text-2xl font-josefin-semibold">HealthCare</h1>
+    <p class="text-sm font-josefin-light opacity-90">Reception Portal</p>
+  </div>
+  <nav class="flex-1 p-4">
+    <ul class="space-y-2">
+      <li><a href="dashboard.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Dashboard</a></li>
+      <li><a href="patients.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Patients</a></li>
+      <li><a href="doctors.html" class="block py-3 px-4 rounded-lg bg-hover-sidebar transition font-semibold">Doctors</a></li>
+      <li><a href="appointments.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Appointments</a></li>
+      <li><a href="queue.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Queue Management</a></li>
+      <li><a href="prescription.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Prescriptions</a></li>
+      <li><a href="reports.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Reports</a></li>
+      <li id="staffMenu" class="hidden"><a href="staff.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Staff Management</a></li>
+    </ul>
+  </nav>
+  <div class="p-4 border-t border-white/20">
+    <div class="flex items-center space-x-3 mb-4">
+      <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+        <span class="font-bold" id="userInitial">A</span>
+      </div>
+      <div>
+        <p class="font-josefin-semibold" id="userName">Administrator</p>
+        <p class="text-xs opacity-80" id="userRole">admin</p>
+      </div>
+    </div>
+    <button onclick="logout()" class="w-full py-2 bg-white/10 rounded-full hover:bg-white/20 transition text-sm">Logout</button>
+  </div>
+</aside>
+
+<main class="flex-1 p-8">
+  <h2 class="text-4xl font-josefin-semibold text-main-accent mb-8">Doctor Management</h2>
+  <div class="flex justify-end mb-8">
+    <button onclick="openAddModal()" class="px-8 py-4 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition shadow-lg">+ Add New Doctor</button>
+  </div>
+  <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-main-accent text-white">
+        <tr>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Name</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Specialization</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Department</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Phone</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Email</th>
+          <th class="py-5 px-6 text-center font-josefin-semibold">Status</th>
+          <th class="py-5 px-6 text-center font-josefin-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="doctorsTableBody" class="divide-y divide-gray-200"></tbody>
+    </table>
+  </div>
+
+  <!-- ISSUE 13: Deleted Doctors History section below main list -->
+  <div id="deletedDoctorsSection" class="hidden mt-10">
+    <h3 class="text-2xl font-josefin-semibold text-gray-500 mb-4">Deleted Doctors History</h3>
+    <div class="bg-gray-100 rounded-3xl shadow overflow-hidden opacity-70">
+      <table class="w-full">
+        <thead class="bg-gray-400 text-white">
+          <tr>
+            <th class="py-4 px-6 text-left font-josefin-semibold">Name</th>
+            <th class="py-4 px-6 text-left font-josefin-semibold">Specialization</th>
+            <th class="py-4 px-6 text-left font-josefin-semibold">Department</th>
+            <th class="py-4 px-6 text-left font-josefin-semibold">Phone</th>
+            <th class="py-4 px-6 text-left font-josefin-semibold">Email</th>
+          </tr>
+        </thead>
+        <tbody id="deletedDoctorsBody" class="divide-y divide-gray-300"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Add/Edit Doctor Modal -->
+<div id="doctorModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  <div class="bg-main p-8 rounded-3xl shadow-2xl max-w-3xl w-full">
+    <h3 class="text-3xl font-josefin-semibold text-main-accent mb-6" id="modalTitle">Add New Doctor</h3>
+    <form id="doctorForm" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- ISSUE 7: Auto Dr. prefix, user only types name -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Full Name</label>
+          <div class="flex items-center gap-3">
+            <span class="px-5 py-4 bg-[#e8e3cd] border border-gray-300 rounded-full font-josefin-semibold text-gray-700 whitespace-nowrap select-none">Dr.</span>
+            <input type="text" id="fullNameSuffix" required placeholder="Enter doctor's name"
+              class="flex-1 px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+          </div>
+        </div>
+
+        <!-- ISSUE 8: Specialization dropdown -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Specialization</label>
+          <select id="specialization" required class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+            <option value="">Select Specialization</option>
+            <option>General Physician</option>
+            <option>Cardiologist</option>
+            <option>Dermatologist</option>
+            <option>Endocrinologist</option>
+            <option>ENT Specialist</option>
+            <option>Gastroenterologist</option>
+            <option>General Surgeon</option>
+            <option>Gynecologist</option>
+            <option>Hematologist</option>
+            <option>Nephrologist</option>
+            <option>Neurologist</option>
+            <option>Neurosurgeon</option>
+            <option>Oncologist</option>
+            <option>Ophthalmologist</option>
+            <option>Orthopedic Surgeon</option>
+            <option>Pediatrician</option>
+            <option>Psychiatrist</option>
+            <option>Pulmonologist</option>
+            <option>Radiologist</option>
+            <option>Rheumatologist</option>
+            <option>Urologist</option>
+          </select>
+        </div>
+
+        <!-- ISSUE 8: Department dropdown -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Department</label>
+          <select id="department" required class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+            <option value="">Select Department</option>
+            <option>General Medicine</option>
+            <option>Cardiology</option>
+            <option>Dermatology</option>
+            <option>Endocrinology</option>
+            <option>ENT</option>
+            <option>Gastroenterology</option>
+            <option>General Surgery</option>
+            <option>Gynecology</option>
+            <option>Hematology</option>
+            <option>Nephrology</option>
+            <option>Neurology</option>
+            <option>Neurosurgery</option>
+            <option>Oncology</option>
+            <option>Ophthalmology</option>
+            <option>Orthopedics</option>
+            <option>Pediatrics</option>
+            <option>Psychiatry</option>
+            <option>Pulmonology</option>
+            <option>Radiology</option>
+            <option>Rheumatology</option>
+            <option>Urology</option>
+          </select>
+        </div>
+
+        <!-- ISSUE 10: Exactly 10 digits phone -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Phone Number (10 digits)</label>
+          <input type="tel" id="phone" required maxlength="10" pattern="[0-9]{10}" placeholder="10-digit number"
+            class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+          <p class="text-xs text-gray-500 mt-1 ml-2 font-josefin-light">Must be exactly 10 digits</p>
+        </div>
+
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Email (Optional)</label>
+          <input type="email" id="email" class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <input type="checkbox" id="isActive" checked class="w-5 h-5 text-main-accent rounded focus:ring-main-accent">
+        <label for="isActive" class="font-josefin-light text-gray-700">Active (Available for appointments and queue)</label>
+      </div>
+      <div class="flex justify-end space-x-4">
+        <button type="button" onclick="closeModal()" class="px-8 py-3 bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition font-josefin-semibold">Cancel</button>
+        <button type="submit" class="px-8 py-3 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition shadow-md">Save Doctor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+fetch('/check-auth', { credentials: 'include' })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.logged_in) { window.location.href = 'index.html'; return; }
+    document.getElementById('userName').textContent = data.name || 'User';
+    document.getElementById('userRole').textContent = data.role || 'reception';
+    document.getElementById('userInitial').textContent = (data.name || 'U')[0].toUpperCase();
+    if (data.role === 'admin') document.getElementById('staffMenu').classList.remove('hidden');
+  })
+  .catch(() => { alert('Session expired'); window.location.href = 'index.html'; });
+
+function logout() {
+  fetch('/logout', { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = 'index.html'; });
+}
+
+let doctors = [];
+let currentEditId = null;
+
+async function loadDoctors() {
+  try {
+    const res = await fetch('/doctors?all=true', { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed');
+    doctors = await res.json();
+    renderDoctors();
+  } catch (err) {
+    document.getElementById('doctorsTableBody').innerHTML =
+      '<tr><td colspan="7" class="py-8 text-center text-red-500 font-josefin-light">Failed to load doctors</td></tr>';
+  }
+}
+
+function cleanDrName(name) {
+  return name.replace(/^Dr\.?\s*/i, '');
+}
+
+function renderDoctors() {
+  const tbody = document.getElementById('doctorsTableBody');
+  const deletedBody = document.getElementById('deletedDoctorsBody');
+  const deletedSection = document.getElementById('deletedDoctorsSection');
+  tbody.innerHTML = '';
+  deletedBody.innerHTML = '';
+
+  // ISSUE 13: Split into active/inactive and deleted
+  const activeDoctors = doctors.filter(d => !d.is_deleted);
+  const deletedDoctors = doctors.filter(d => d.is_deleted);
+
+  if (activeDoctors.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500 font-josefin-light">No doctors registered yet</td></tr>';
+  }
+
+  activeDoctors.forEach(doctor => {
+    const statusClass = doctor.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+    const statusText = doctor.is_active ? 'Active' : 'Inactive';
+    const rowOpacity = doctor.is_active ? '' : 'opacity-60';
+    const displayName = `Dr. ${cleanDrName(doctor.full_name)}`;
+    const tr = document.createElement('tr');
+    tr.className = `table-row ${rowOpacity}`;
+    tr.innerHTML = `
+      <td class="py-4 px-6 font-josefin-semibold">${displayName}</td>
+      <td class="py-4 px-6 font-josefin-light">${doctor.specialization}</td>
+      <td class="py-4 px-6 font-josefin-light">${doctor.department}</td>
+      <td class="py-4 px-6 font-josefin-light">${doctor.phone}</td>
+      <td class="py-4 px-6 font-josefin-light">${doctor.email || '-'}</td>
+      <td class="py-4 px-6 text-center">
+        <span class="px-4 py-2 rounded-full text-sm font-josefin-semibold ${statusClass}">${statusText}</span>
+      </td>
+      <td class="py-4 px-6 text-center space-x-2">
+        <button onclick="editDoctor(${doctor.id})" class="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm hover:bg-yellow-200 transition font-josefin-light">Edit</button>
+        <button onclick="toggleActive(${doctor.id})" class="px-4 py-2 ${doctor.is_active ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'} rounded-full text-sm hover:opacity-80 transition font-josefin-light">
+          ${doctor.is_active ? 'Deactivate' : 'Activate'}
+        </button>
+        <button onclick="deleteDoctor(${doctor.id})" class="px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200 transition font-josefin-light">Delete</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // ISSUE 13: Show deleted doctors at the bottom
+  if (deletedDoctors.length > 0) {
+    deletedSection.classList.remove('hidden');
+    deletedDoctors.forEach(doctor => {
+      const displayName = `Dr. ${cleanDrName(doctor.full_name)}`;
+      const tr = document.createElement('tr');
+      tr.className = 'bg-gray-50';
+      tr.innerHTML = `
+        <td class="py-3 px-6 font-josefin-semibold text-gray-500 line-through">${displayName}</td>
+        <td class="py-3 px-6 font-josefin-light text-gray-400">${doctor.specialization}</td>
+        <td class="py-3 px-6 font-josefin-light text-gray-400">${doctor.department}</td>
+        <td class="py-3 px-6 font-josefin-light text-gray-400">${doctor.phone}</td>
+        <td class="py-3 px-6 font-josefin-light text-gray-400">${doctor.email || '-'}</td>
+      `;
+      deletedBody.appendChild(tr);
+    });
+  } else {
+    deletedSection.classList.add('hidden');
+  }
+}
+
+function openAddModal() {
+  currentEditId = null;
+  document.getElementById('modalTitle').textContent = 'Add New Doctor';
+  document.getElementById('doctorForm').reset();
+  document.getElementById('fullNameSuffix').value = '';
+  document.getElementById('isActive').checked = true;
+  document.getElementById('doctorModal').classList.remove('hidden');
+  document.getElementById('doctorModal').classList.add('flex');
+}
+
+function closeModal() {
+  document.getElementById('doctorModal').classList.add('hidden');
+  document.getElementById('doctorModal').classList.remove('flex');
+}
+
+function editDoctor(id) {
+  const doctor = doctors.find(d => d.id === id);
+  if (!doctor) return;
+  currentEditId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Doctor';
+  // ISSUE 7: Strip Dr. prefix so user only edits the name part
+  document.getElementById('fullNameSuffix').value = cleanDrName(doctor.full_name);
+  document.getElementById('specialization').value = doctor.specialization;
+  document.getElementById('department').value = doctor.department;
+  document.getElementById('phone').value = doctor.phone;
+  document.getElementById('email').value = doctor.email || '';
+  document.getElementById('isActive').checked = !!doctor.is_active;
+  document.getElementById('doctorModal').classList.remove('hidden');
+  document.getElementById('doctorModal').classList.add('flex');
+}
+
+document.getElementById('doctorForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const nameSuffix = document.getElementById('fullNameSuffix').value.trim();
+  if (!nameSuffix) { alert("Please enter the doctor's name"); return; }
+
+  // ISSUE 10: Validate 10-digit phone
+  const phone = document.getElementById('phone').value.trim();
+  if (!/^[0-9]{10}$/.test(phone)) {
+    alert('Phone number must be exactly 10 digits');
+    return;
+  }
+
+  const data = {
+    full_name: `Dr. ${nameSuffix}`,   // ISSUE 7: auto-prepend Dr.
+    specialization: document.getElementById('specialization').value,
+    department: document.getElementById('department').value,
+    phone: phone,
+    email: document.getElementById('email').value.trim() || null,
+    is_active: document.getElementById('isActive').checked
+  };
+
+  try {
+    const url = currentEditId ? `/doctors/${currentEditId}` : '/doctors';
+    const method = currentEditId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      alert(currentEditId ? 'Doctor updated successfully!' : 'Doctor added successfully!');
+      closeModal();
+      loadDoctors();
+    } else {
+      const err = await res.json();
+      alert('Error: ' + (err.error || 'Failed to save doctor'));
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+  }
+});
+
+async function toggleActive(id) {
+  const doctor = doctors.find(d => d.id === id);
+  if (!doctor) return;
+  const action = doctor.is_active ? 'deactivate' : 'activate';
+  if (!confirm(`Are you sure you want to ${action} Dr. ${cleanDrName(doctor.full_name)}?`)) return;
+  try {
+    const res = await fetch(`/doctors/${id}/toggle-active`, {
+      method: 'PUT', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (res.ok) { loadDoctors(); }
+    else {
+      const err = await res.json();
+      alert('Failed to update status: ' + (err.error || 'Unknown error'));
+    }
+  } catch (err) { alert('Error updating doctor status'); }
+}
+
+async function deleteDoctor(id) {
+  const doctor = doctors.find(d => d.id === id);
+  if (!doctor) return;
+  if (!confirm(`Are you sure you want to delete Dr. ${cleanDrName(doctor.full_name)}? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/doctors/${id}`, { method: 'DELETE', credentials: 'include' });
+    if (res.ok) { alert('Doctor deleted successfully'); loadDoctors(); }
+    else alert('Failed to delete doctor');
+  } catch (err) { alert('Network error'); }
+}
+
+loadDoctors();
+</script>
+</body>
+</html>
