@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Appointments - HealthCare Reception Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@300;600&display=swap" rel="stylesheet">
+<style>
+body { background-color: #fdfae7; font-family: 'Inter', sans-serif; }
+.bg-main { background-color: #fffcef; }
+.text-main-accent { color: #659bb9; }
+.bg-main-accent { background-color: #659bb9; }
+.font-josefin-semibold { font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+.font-josefin-light { font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+.text-logo-icon { color: #fbfcfd; }
+.bg-sidebar { background-color: #6998B6; }
+.hover-sidebar { background-color: #5a86a3; }
+.table-row:hover { background-color: #fdfae7; }
+.status-scheduled { background-color: #d1ecf1; color: #0c5460; }
+.status-completed { background-color: #d4edda; color: #155724; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+</style>
+</head>
+<body class="min-h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 bg-sidebar text-white flex flex-col">
+  <div class="p-6 text-center border-b border-white/20">
+    <div class="w-16 h-16 mx-auto mb-4 border-4 border-logo-icon rounded-full flex items-center justify-center bg-sidebar">
+      <span class="text-3xl font-bold text-logo-icon">+</span>
+    </div>
+    <h1 class="text-2xl font-josefin-semibold">HealthCare</h1>
+    <p class="text-sm font-josefin-light opacity-90">Reception Portal</p>
+  </div>
+  <nav class="flex-1 p-4">
+    <ul class="space-y-2">
+      <li><a href="dashboard.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Dashboard</a></li>
+      <li><a href="patients.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Patients</a></li>
+      <li><a href="doctors.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Doctors</a></li>
+      <li><a href="appointments.html" class="block py-3 px-4 rounded-lg bg-hover-sidebar transition font-semibold">Appointments</a></li>
+      <li><a href="queue.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Queue Management</a></li>
+      <li><a href="prescription.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Prescriptions</a></li>
+      <li><a href="reports.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Reports</a></li>
+      <li id="staffMenu" class="hidden"><a href="staff.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Staff Management</a></li>
+    </ul>
+  </nav>
+  <div class="p-4 border-t border-white/20">
+    <div class="flex items-center space-x-3 mb-4">
+      <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+        <span class="font-bold" id="userInitial">A</span>
+      </div>
+      <div>
+        <p class="font-josefin-semibold" id="userName">Administrator</p>
+        <p class="text-xs opacity-80" id="userRole">admin</p>
+      </div>
+    </div>
+    <button onclick="logout()" class="w-full py-2 bg-white/10 rounded-full hover:bg-white/20 transition text-sm">Logout</button>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 p-8">
+  <h2 class="text-4xl font-josefin-semibold text-main-accent mb-8">Appointment Management</h2>
+  <div class="flex justify-between items-center mb-8">
+    <input type="date" id="filterDate" class="px-6 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+    <button onclick="openAddModal()" class="px-8 py-4 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition shadow-lg">
+      + New Appointment
+    </button>
+  </div>
+
+  <!-- Appointments Table -->
+  <div class="bg-white rounded-3xl shadow-xl overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-main-accent text-white">
+        <tr>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Appt ID</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Date & Time</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Patient</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Doctor</th>
+          <th class="py-5 px-6 text-left font-josefin-semibold">Reason</th>
+          <th class="py-5 px-6 text-center font-josefin-semibold">Status</th>
+          <th class="py-5 px-6 text-center font-josefin-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentsTableBody" class="divide-y divide-gray-200">
+        <!-- Filled by JS -->
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Add/Edit Appointment Modal -->
+<div id="appointmentModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+  <div class="bg-main p-8 rounded-3xl shadow-2xl max-w-2xl w-full">
+    <h3 class="text-3xl font-josefin-semibold text-main-accent mb-6" id="modalTitle">New Appointment</h3>
+    <form id="appointmentForm" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Searchable Patient Input -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Patient</label>
+          <input list="patientDatalist" id="patientSearchInput" placeholder="Type patient name or ID..." required autocomplete="off"
+            class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+          <datalist id="patientDatalist"></datalist>
+          <input type="hidden" id="patientIdHidden">
+        </div>
+        <!-- Doctor Select -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Doctor (Active only)</label>
+          <select id="doctorSelect" required class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+            <option value="">Select Doctor</option>
+          </select>
+        </div>
+        <!-- Date & Time -->
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Date</label>
+          <input type="date" id="apptDate" required class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+        </div>
+        <div>
+          <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Time</label>
+          <input type="time" id="apptTime" required class="w-full px-5 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-josefin-semibold text-gray-700 mb-2">Reason (Optional)</label>
+        <textarea id="reason" placeholder="Reason for visit" rows="3" class="w-full px-5 py-4 rounded-2xl bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none resize-none font-josefin-light"></textarea>
+      </div>
+      <div class="flex justify-end space-x-4">
+        <button type="button" onclick="closeModal()" class="px-8 py-3 bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition font-josefin-semibold">Cancel</button>
+        <button type="submit" class="px-8 py-3 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition">Book Appointment</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Auth Check
+fetch('/check-auth', { credentials: 'include' })
+  .then(res => res.json())
+  .then(data => {
+    if (!data.logged_in) { window.location.href = 'index.html'; return; }
+    document.getElementById('userName').textContent = data.name || 'User';
+    document.getElementById('userRole').textContent = data.role || 'reception';
+    document.getElementById('userInitial').textContent = (data.name || 'U')[0].toUpperCase();
+    if (data.role === 'admin') document.getElementById('staffMenu').classList.remove('hidden');
+  })
+  .catch(() => { alert('Session expired or server unreachable'); window.location.href = 'index.html'; });
+
+function logout() {
+  fetch('/logout', { method: 'POST', credentials: 'include' }).finally(() => { window.location.href = 'index.html'; });
+}
+
+let patients = [];
+let doctors = [];
+
+async function loadDropdowns() {
+  try {
+    const [patRes, docRes] = await Promise.all([
+      fetch('/patients', { credentials: 'include' }),
+      fetch('/doctors', { credentials: 'include' })   // active only for dropdowns
+    ]);
+    patients = await patRes.json();
+    doctors = await docRes.json();
+
+    const datalist = document.getElementById('patientDatalist');
+    datalist.innerHTML = '';
+    patients.forEach(p => {
+      const option = document.createElement('option');
+      option.value = `${p.full_name} (${p.patient_id})`;
+      option.dataset.id = p.id;
+      datalist.appendChild(option);
+    });
+
+    const doctorSelect = document.getElementById('doctorSelect');
+    doctorSelect.innerHTML = '<option value="">Select Doctor</option>';
+    doctors.filter(d => d.is_active !== false).forEach(d => {
+      const option = document.createElement('option');
+      option.value = d.id;
+      option.textContent = `${d.full_name} - ${d.department}`;
+      doctorSelect.appendChild(option);
+    });
+  } catch (err) {
+    alert('Failed to load patients or doctors');
+  }
+}
+
+document.getElementById('patientSearchInput').addEventListener('input', function() {
+  const inputValue = this.value;
+  const selectedOption = Array.from(document.getElementById('patientDatalist').options)
+    .find(opt => opt.value === inputValue);
+  document.getElementById('patientIdHidden').value = selectedOption ? selectedOption.dataset.id : '';
+});
+
+async function loadAppointments() {
+  const filterDateInput = document.getElementById('filterDate');
+  let date = filterDateInput.value || new Date().toISOString().split('T')[0];
+  try {
+    const res = await fetch(`/appointments?date=${date}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch');
+    const appointments = await res.json();
+    renderAppointments(appointments);
+  } catch (err) {
+    document.getElementById('appointmentsTableBody').innerHTML =
+      '<tr><td colspan="7" class="py-8 text-center text-red-500">Failed to load appointments</td></tr>';
+  }
+}
+
+function renderAppointments(appointments) {
+  const tbody = document.getElementById('appointmentsTableBody');
+  tbody.innerHTML = '';
+  if (appointments.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-gray-500">No appointments for selected date</td></tr>';
+    return;
+  }
+  appointments.forEach(appt => {
+    const statusClass = {
+      'Scheduled': 'status-scheduled',
+      'Completed': 'status-completed',
+      'Cancelled': 'status-cancelled'
+    }[appt.status] || '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="py-4 px-6 font-medium">${appt.appointment_id || 'N/A'}</td>
+      <td class="py-4 px-6">${appt.appointment_date}<br><span class="text-sm text-gray-600">${appt.appointment_time}</span></td>
+      <td class="py-4 px-6">${appt.patient_name || 'Unknown'}<br><small class="text-gray-500">${appt.patient_code || ''}</small></td>
+      <td class="py-4 px-6">${appt.doctor_name || 'Unknown'}<br><small class="text-gray-500">${appt.department || ''}</small></td>
+      <td class="py-4 px-6">${appt.reason || '-'}</td>
+      <td class="py-4 px-6 text-center"><span class="px-4 py-1 rounded-full text-sm ${statusClass}">${appt.status}</span></td>
+      <td class="py-4 px-6 text-center space-x-2">
+        ${appt.status === 'Scheduled' ? `
+          <button onclick="updateStatus(${appt.id}, 'Completed')" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">Complete</button>
+          <button onclick="updateStatus(${appt.id}, 'Cancelled')" class="px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm hover:bg-red-200">Cancel</button>
+        ` : ''}
+        ${appt.status === 'Completed' ? `
+          <button onclick="openPrescription(${appt.patient_db_id}, ${appt.id})" class="px-6 py-3 bg-purple-600 text-white rounded-full text-sm hover:bg-purple-700 transition shadow font-josefin-semibold">
+            Prescribe
+          </button>
+        ` : ''}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// FIXED: Store patient in server session — fully reliable, no localStorage needed
+async function openPrescription(patientId, appointmentId) {
+  if (!patientId) {
+    alert('Error: Patient ID not found');
+    return;
+  }
+  try {
+    await fetch('/prescription/set-patient', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patient_id: patientId, appointment_id: appointmentId || null })
+    });
+  } catch(e) {
+    console.error('Could not store prescription patient in session', e);
+  }
+  window.location.href = 'prescription.html';
+}
+
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = 'New Appointment';
+  document.getElementById('appointmentForm').reset();
+  document.getElementById('patientIdHidden').value = '';
+  document.getElementById('apptDate').value = document.getElementById('filterDate').value || new Date().toISOString().split('T')[0];
+  document.getElementById('appointmentModal').classList.remove('hidden');
+  document.getElementById('appointmentModal').classList.add('flex');
+  loadDropdowns();
+}
+
+function closeModal() {
+  document.getElementById('appointmentModal').classList.add('hidden');
+  document.getElementById('appointmentModal').classList.remove('flex');
+}
+
+document.getElementById('appointmentForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const patientId = document.getElementById('patientIdHidden').value;
+  if (!patientId) {
+    alert('Please select a valid patient from the list');
+    return;
+  }
+  const data = {
+    patient_id: parseInt(patientId),
+    doctor_id: parseInt(document.getElementById('doctorSelect').value),
+    appointment_date: document.getElementById('apptDate').value,
+    appointment_time: document.getElementById('apptTime').value,
+    reason: document.getElementById('reason').value.trim() || null
+  };
+  try {
+    const res = await fetch('/appointments', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (res.ok) {
+      alert('Appointment booked successfully!');
+      closeModal();
+      loadAppointments();
+    } else {
+      alert('Error: ' + (result.error || 'Slot already taken or invalid data'));
+    }
+  } catch (err) {
+    alert('Network error. Please try again.');
+  }
+});
+
+async function updateStatus(id, newStatus) {
+  if (!confirm(`Mark this appointment as ${newStatus}?`)) return;
+  try {
+    const res = await fetch(`/appointments/status/${id}`, {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      loadAppointments();
+    } else {
+      alert('Failed to update status');
+    }
+  } catch (err) {
+    alert('Error updating status');
+  }
+}
+
+document.getElementById('filterDate').addEventListener('change', loadAppointments);
+
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('filterDate').value = today;
+loadAppointments();
+</script>
+</body>
+</html>

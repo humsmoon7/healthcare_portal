@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - HealthCare Reception Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #fdfae7; font-family: 'Inter', sans-serif; }
+        .bg-main { background-color: #fffcef; }
+        .text-main-accent { color: #659bb9; }
+        .bg-main-accent { background-color: #659bb9; }
+        .font-josefin-semibold { font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+        .font-josefin-light { font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+        .bg-sidebar { background-color: #6998B6; }
+        .hover-sidebar { background-color: #5a86a3; }
+        .stat-card {
+            background: linear-gradient(135deg, #659bb9 0%, #8ab4cc 100%);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(101, 155, 185, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar text-white flex flex-col">
+        <div class="p-6 text-center border-b border-white/20">
+            <div class="w-16 h-16 mx-auto mb-4 border-4 border-white rounded-full flex items-center justify-center bg-sidebar">
+                <span class="text-3xl font-bold text-white">+</span>
+            </div>
+            <h1 class="text-2xl font-josefin-semibold">HealthCare</h1>
+            <p class="text-sm font-josefin-light opacity-90">Reception Portal</p>
+        </div>
+
+        <nav class="flex-1 p-4">
+            <ul class="space-y-2">
+                <li><a href="dashboard.html" class="block py-3 px-4 rounded-lg bg-hover-sidebar transition font-semibold">Dashboard</a></li>
+                <li><a href="patients.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Patients</a></li>
+                <li><a href="doctors.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Doctors</a></li>
+                <li><a href="appointments.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Appointments</a></li>
+                <li><a href="queue.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Queue Management</a></li>
+                <li><a href="prescription.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Prescriptions</a></li>
+                <li><a href="reports.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Reports</a></li>
+                <li id="staffMenu" class="hidden"><a href="staff.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Staff Management</a></li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-white/20">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <span class="font-bold" id="userInitial">A</span>
+                </div>
+                <div>
+                    <p class="font-josefin-semibold" id="userName">Administrator</p>
+                    <p class="text-xs opacity-80" id="userRole">admin</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full py-2 bg-white/10 rounded-full hover:bg-white/20 transition text-sm">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-10">
+        <div class="mb-10">
+            <h2 class="text-5xl font-josefin-semibold text-main-accent mb-2">Welcome back, <span id="welcomeName">User</span>!</h2>
+            <p class="text-xl font-josefin-light text-gray-700" id="currentDate">Today's Overview — Loading...</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div class="stat-card rounded-3xl p-8 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-josefin-light">Total Patients</h3>
+                    <div class="text-4xl">👥</div>
+                </div>
+                <p class="text-6xl font-josefin-semibold" id="totalPatients">0</p>
+            </div>
+
+            <div class="stat-card rounded-3xl p-8 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-josefin-light">Active Doctors</h3>
+                    <div class="text-4xl">👨‍⚕️</div>
+                </div>
+                <p class="text-6xl font-josefin-semibold" id="activeDoctors">0</p>
+            </div>
+
+            <div class="stat-card rounded-3xl p-8 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-josefin-light">Today's Appointments</h3>
+                    <div class="text-4xl">📅</div>
+                </div>
+                <p class="text-6xl font-josefin-semibold" id="todayAppointments">0</p>
+            </div>
+
+            <div class="stat-card rounded-3xl p-8 text-white shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-josefin-light">Patients Waiting</h3>
+                    <div class="text-4xl">⏳</div>
+                </div>
+                <p class="text-6xl font-josefin-semibold" id="waitingQueue">0</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 mb-12">
+            <h3 class="text-3xl font-josefin-semibold text-main-accent mb-8">Quick Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <a href="patients.html" class="bg-[#fdfae7] rounded-2xl p-8 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+                    <div class="text-6xl mb-4">👤</div>
+                    <p class="text-2xl font-josefin-semibold text-main-accent">Add New Patient</p>
+                    <p class="text-gray-600 mt-2 font-josefin-light">Register a new patient quickly</p>
+                </a>
+                <a href="appointments.html" class="bg-[#fdfae7] rounded-2xl p-8 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+                    <div class="text-6xl mb-4">📅</div>
+                    <p class="text-2xl font-josefin-semibold text-main-accent">Book Appointment</p>
+                    <p class="text-gray-600 mt-2 font-josefin-light">Schedule a new appointment</p>
+                </a>
+                <a href="queue.html" class="bg-[#fdfae7] rounded-2xl p-8 text-center hover:shadow-lg transition transform hover:-translate-y-1">
+                    <div class="text-6xl mb-4">🎫</div>
+                    <p class="text-2xl font-josefin-semibold text-main-accent">Generate Token</p>
+                    <p class="text-gray-600 mt-2 font-josefin-light">Issue walk-in queue token</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Today's Appointments -->
+        <div class="bg-white rounded-3xl shadow-xl p-8">
+            <h3 class="text-3xl font-josefin-semibold text-main-accent mb-6">Today's Appointments</h3>
+            <div id="recentAppointments" class="space-y-4 max-h-96 overflow-y-auto">
+                <p class="text-center text-gray-500 py-8">Loading appointments...</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Auth & User Info
+        fetch('/check-auth', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.logged_in) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                document.getElementById('userName').textContent = data.name || 'User';
+                document.getElementById('welcomeName').textContent = data.name || 'User';
+                document.getElementById('userRole').textContent = data.role || 'reception';
+                document.getElementById('userInitial').textContent = (data.name || 'U')[0].toUpperCase();
+
+                if (data.role === 'admin') {
+                    document.getElementById('staffMenu').classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                alert('Session expired or server unreachable');
+                window.location.href = 'index.html';
+            });
+
+        function logout() {
+            fetch('/logout', { method: 'POST', credentials: 'include' })
+                .finally(() => {
+                    window.location.href = 'index.html';
+                });
+        }
+
+        // Set current date
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('currentDate').textContent = `Today's Overview — ${today.toLocaleDateString('en-US', options)}`;
+
+        // Load Stats
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch('/dashboard/stats', { credentials: 'include' });
+                if (!res.ok) throw new Error('Failed');
+                const stats = await res.json();
+
+                document.getElementById('totalPatients').textContent = stats.total_patients || 0;
+                document.getElementById('activeDoctors').textContent = stats.active_doctors || 0;
+                document.getElementById('todayAppointments').textContent = stats.today_appointments || 0;
+                document.getElementById('waitingQueue').textContent = stats.waiting_queue || 0;
+            } catch (err) {
+                console.error('Stats load failed');
+            }
+        }
+
+        // Load Today's Appointments
+        async function loadTodayAppointments() {
+            const container = document.getElementById('recentAppointments');
+            try {
+                const todayStr = today.toISOString().split('T')[0];
+                const res = await fetch(`/appointments?date=${todayStr}`, { credentials: 'include' });
+                if (!res.ok) throw new Error('Failed');
+                const appointments = await res.json();
+
+                if (appointments.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 py-8 font-josefin-light">No appointments scheduled for today</p>';
+                    return;
+                }
+
+                container.innerHTML = appointments.slice(0, 8).map(appt => {
+                    const statusColor = 
+                        appt.status === 'Scheduled' ? 'bg-blue-100 text-blue-700' :
+                        appt.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                        'bg-red-100 text-red-700';
+
+                    return `
+                        <div class="flex items-center justify-between p-5 bg-[#fdfae7] rounded-2xl hover:bg-[#f0edd8] transition">
+                            <div>
+                                <p class="font-josefin-semibold text-lg text-main-accent">${appt.patient_name}</p>
+                                <p class="text-sm font-josefin-light text-gray-600">
+                                    Dr. ${appt.doctor_name} • ${appt.appointment_time} ${appt.reason ? '• ' + appt.reason : ''}
+                                </p>
+                            </div>
+                            <span class="px-5 py-2 rounded-full text-sm font-josefin-semibold ${statusColor}">
+                                ${appt.status}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                container.innerHTML = '<p class="text-center text-red-500 py-8">Failed to load appointments</p>';
+            }
+        }
+
+        // Initial Load
+        loadDashboardStats();
+        loadTodayAppointments();
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadDashboardStats();
+            loadTodayAppointments();
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - HealthCare Reception Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { background-color: #fdfae7; font-family: 'Inter', sans-serif; }
+        .bg-main { background-color: #fffcef; }
+        .text-main-accent { color: #659bb9; }
+        .bg-main-accent { background-color: #659bb9; }
+        .font-josefin-semibold { font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+        .font-josefin-light { font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+        .bg-sidebar { background-color: #6998B6; }
+        .hover-sidebar { background-color: #5a86a3; }
+        .table-row:hover { background-color: #fdfae7; transition: 0.2s; }
+        .visitor-list { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+        .visitor-list.open { max-height: 200px; }
+    </style>
+</head>
+<body class="min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-sidebar text-white flex flex-col">
+        <div class="p-6 text-center border-b border-white/20">
+            <div class="w-16 h-16 mx-auto mb-4 border-4 border-white rounded-full flex items-center justify-center bg-sidebar">
+                <span class="text-3xl font-bold text-white">+</span>
+            </div>
+            <h1 class="text-2xl font-josefin-semibold">HealthCare</h1>
+            <p class="text-sm font-josefin-light opacity-90">Reception Portal</p>
+        </div>
+
+        <nav class="flex-1 p-4">
+            <ul class="space-y-2">
+                <li><a href="dashboard.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Dashboard</a></li>
+                <li><a href="patients.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Patients</a></li>
+                <li><a href="doctors.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Doctors</a></li>
+                <li><a href="appointments.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Appointments</a></li>
+                <li><a href="queue.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Queue Management</a></li>
+                <li><a href="prescription.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Prescriptions</a></li>
+                <li><a href="reports.html" class="block py-3 px-4 rounded-lg bg-hover-sidebar transition font-semibold">Reports</a></li>
+                <li id="staffMenu" class="hidden"><a href="staff.html" class="block py-3 px-4 rounded-lg hover:bg-hover-sidebar transition">Staff Management</a></li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-white/20">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <span class="font-bold" id="userInitial">A</span>
+                </div>
+                <div>
+                    <p class="font-josefin-semibold" id="userName">Administrator</p>
+                    <p class="text-xs opacity-80" id="userRole">admin</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="w-full py-2 bg-white/10 rounded-full hover:bg-white/20 transition text-sm">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8">
+        <h2 class="text-5xl font-josefin-semibold text-main-accent mb-10">Reports & Analytics</h2>
+
+        <!-- Daily Patient Report -->
+        <div class="bg-white rounded-3xl shadow-xl p-8 mb-12">
+            <h3 class="text-3xl font-josefin-semibold text-main-accent mb-8">Daily Patient Summary</h3>
+            
+            <div class="flex flex-wrap gap-4 mb-8">
+                <input 
+                    type="date" 
+                    id="dailyReportDate" 
+                    class="px-6 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light shadow-md"
+                >
+                <button onclick="loadDailyReport()" class="px-8 py-4 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition shadow-md">
+                    Generate Report
+                </button>
+                <button onclick="exportDailyCSV()" class="px-8 py-4 bg-green-600 text-white rounded-full font-josefin-semibold hover:bg-green-700 transition shadow-md">
+                    Export CSV
+                </button>
+                <button onclick="exportDailyPDF()" class="px-8 py-4 bg-red-600 text-white rounded-full font-josefin-semibold hover:bg-red-700 transition shadow-md">
+                    Export PDF
+                </button>
+            </div>
+
+            <div id="dailyReportContent" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-8 bg-[#e8e3cd] rounded-3xl text-center shadow-lg">
+                    <p class="text-lg font-josefin-light text-gray-700 mb-4">Total Appointments</p>
+                    <p class="text-6xl font-josefin-semibold text-main-accent" id="dailyTotal">0</p>
+                </div>
+                <div class="p-8 bg-green-100 rounded-3xl text-center shadow-lg">
+                    <p class="text-lg font-josefin-light text-gray-700 mb-4">Completed</p>
+                    <p class="text-6xl font-josefin-semibold text-green-700" id="dailyCompleted">0</p>
+                </div>
+                <div class="p-8 bg-red-100 rounded-3xl text-center shadow-lg">
+                    <p class="text-lg font-josefin-light text-gray-700 mb-4">Cancelled</p>
+                    <p class="text-6xl font-josefin-semibold text-red-700" id="dailyCancelled">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor-wise Visit Count -->
+        <div class="bg-white rounded-3xl shadow-xl p-8">
+            <h3 class="text-3xl font-josefin-semibold text-main-accent mb-8">Doctor-wise Visit Count</h3>
+            
+            <div class="flex flex-wrap gap-4 mb-8">
+                <input 
+                    type="date" 
+                    id="startDate" 
+                    class="px-6 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light shadow-md"
+                >
+                <input 
+                    type="date" 
+                    id="endDate" 
+                    class="px-6 py-4 rounded-full bg-[#fdfae7] border border-gray-300 focus:border-main-accent outline-none font-josefin-light shadow-md"
+                >
+                <button onclick="loadDoctorReport()" class="px-8 py-4 bg-main-accent text-white rounded-full font-josefin-semibold hover:opacity-90 transition shadow-md">
+                    Generate Report
+                </button>
+                <button onclick="exportDoctorCSV()" class="px-8 py-4 bg-green-600 text-white rounded-full font-josefin-semibold hover:bg-green-700 transition shadow-md">
+                    Export CSV
+                </button>
+                <button onclick="exportDoctorPDF()" class="px-8 py-4 bg-red-600 text-white rounded-full font-josefin-semibold hover:bg-red-700 transition shadow-md">
+                    Export PDF
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-main-accent text-white">
+                        <tr>
+                            <th class="py-5 px-6 text-left font-josefin-semibold">Doctor Name</th>
+                            <th class="py-5 px-6 text-left font-josefin-semibold">Department</th>
+                            <th class="py-5 px-6 text-center font-josefin-semibold">Total Visits</th>
+                            <th class="py-5 px-6 text-left font-josefin-semibold">Visitors</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctorReportBody" class="divide-y divide-gray-200">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Auth Check
+        fetch('/check-auth', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.logged_in) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+                document.getElementById('userName').textContent = data.name || 'User';
+                document.getElementById('userRole').textContent = data.role || 'reception';
+                document.getElementById('userInitial').textContent = (data.name || 'U')[0].toUpperCase();
+                if (data.role === 'admin') {
+                    document.getElementById('staffMenu').classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                alert('Session expired or server unreachable');
+                window.location.href = 'index.html';
+            });
+
+        function logout() {
+            fetch('/logout', { method: 'POST', credentials: 'include' })
+                .finally(() => {
+                    window.location.href = 'index.html';
+                });
+        }
+
+        let dailyReportData = null;
+        let doctorReportData = [];
+
+        // Set default dates
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        document.getElementById('dailyReportDate').value = todayStr;
+
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('startDate').value = firstDayOfMonth.toISOString().split('T')[0];
+        document.getElementById('endDate').value = todayStr;
+
+        async function loadDailyReport() {
+            const date = document.getElementById('dailyReportDate').value || todayStr;
+            try {
+                const res = await fetch(`/reports/daily?date=${date}`, { credentials: 'include' });
+                if (!res.ok) throw new Error();
+                dailyReportData = await res.json();
+
+                document.getElementById('dailyTotal').textContent = dailyReportData.total_appointments || 0;
+                document.getElementById('dailyCompleted').textContent = dailyReportData.completed || 0;
+                document.getElementById('dailyCancelled').textContent = dailyReportData.cancelled || 0;
+            } catch (err) {
+                alert('Failed to load daily report');
+            }
+        }
+
+        async function loadDoctorReport() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
+            if (!start || !end) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/reports/doctor-visits?start_date=${start}&end_date=${end}`, { credentials: 'include' });
+                if (!res.ok) throw new Error();
+                doctorReportData = await res.json();
+
+                const tbody = document.getElementById('doctorReportBody');
+                if (doctorReportData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-gray-500 font-josefin-light">No visits recorded in this period</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = doctorReportData.map((doc, index) => {
+                    const visitors = doc.visitors || 'None';
+                    return `
+                        <tr class="table-row">
+                            <td class="py-5 px-6 font-josefin-semibold">${doc.full_name}</td>
+                            <td class="py-5 px-6 font-josefin-light">${doc.department}</td>
+                            <td class="py-5 px-6 text-center font-josefin-semibold text-main-accent text-2xl">${doc.visit_count}</td>
+                            <td class="py-5 px-6">
+                                <button onclick="toggleVisitors(${index})" class="text-main-accent underline font-josefin-light hover:font-josefin-semibold transition">
+                                    View Visitors (${(visitors.split(', ').length)} patients)
+                                </button>
+                                <div id="visitors-${index}" class="visitor-list mt-3 text-sm text-gray-600 font-josefin-light">
+                                    ${visitors.split(', ').map(v => `<div class="py-1">• ${v.trim()}</div>`).join('')}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (err) {
+                alert('Failed to load doctor report');
+            }
+        }
+
+        function toggleVisitors(index) {
+            const el = document.getElementById(`visitors-${index}`);
+            el.classList.toggle('open');
+        }
+
+        // Export Daily Report
+        function exportDailyCSV() {
+            if (!dailyReportData) return alert('Generate report first');
+            const date = document.getElementById('dailyReportDate').value;
+            const csv = `Daily Patient Report,${date}\n\nMetric,Count\nTotal Appointments,${dailyReportData.total_appointments}\nCompleted,${dailyReportData.completed}\nCancelled,${dailyReportData.cancelled}`;
+            downloadFile(csv, `daily-report-${date}.csv`, 'text/csv');
+        }
+
+        function exportDailyPDF() {
+            if (!dailyReportData) return alert('Generate report first');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const date = document.getElementById('dailyReportDate').value;
+
+            doc.setFontSize(22);
+            doc.text('Daily Patient Report', 20, 30);
+            doc.setFontSize(14);
+            doc.text(`Date: ${date}`, 20, 45);
+
+            doc.setFontSize(16);
+            doc.text(`Total Appointments: ${dailyReportData.total_appointments}`, 20, 70);
+            doc.text(`Completed: ${dailyReportData.completed}`, 20, 90);
+            doc.text(`Cancelled: ${dailyReportData.cancelled}`, 20, 110);
+
+            doc.save(`daily-report-${date}.pdf`);
+        }
+
+        // Export Doctor Report
+        function exportDoctorCSV() {
+            if (doctorReportData.length === 0) return alert('Generate report first');
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
+            let csv = `Doctor-wise Visit Count,${start} to ${end}\n\nDoctor Name,Department,Visit Count,Visitors\n`;
+            doctorReportData.forEach(doc => {
+                csv += `"${doc.full_name}","${doc.department}",${doc.visit_count},"${doc.visitors || 'None'}"\n`;
+            });
+
+            downloadFile(csv, `doctor-visits-${start}-to-${end}.csv`, 'text/csv');
+        }
+
+        function exportDoctorPDF() {
+            if (doctorReportData.length === 0) return alert('Generate report first');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
+            doc.setFontSize(20);
+            doc.text('Doctor-wise Visit Count Report', 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Period: ${start} to ${end}`, 20, 30);
+
+            const rows = doctorReportData.map(doc => [
+                doc.full_name,
+                doc.department,
+                doc.visit_count.toString(),
+                doc.visitors || 'None'
+            ]);
+
+            doc.autoTable({
+                head: [['Doctor Name', 'Department', 'Visits', 'Visitors']],
+                body: rows,
+                startY: 40,
+                styles: { fontSize: 10 },
+                headStyles: { fillColor: [101, 155, 185] }
+            });
+
+            doc.save(`doctor-visits-${start}-to-${end}.pdf`);
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Initial Load
+        loadDailyReport();
+        loadDoctorReport();
+    </script>
+</body>
+</html>

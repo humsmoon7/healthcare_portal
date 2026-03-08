@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HealthCare Reception Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Josefin+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #659bb9 0%, #8ab4cc 100%);
+            font-family: 'Josefin Sans', sans-serif;
+            min-height: 100vh;
+        }
+        .bg-main { background-color: #fffcef; }
+        .text-main-accent { color: #659bb9; }
+        .bg-main-accent { background-color: #659bb9; }
+        .font-josefin-semibold { font-family: 'Josefin Sans', sans-serif; font-weight: 600; }
+        .font-josefin-light { font-family: 'Josefin Sans', sans-serif; font-weight: 300; }
+        .input-focus {
+            transition: border-color 0.3s ease;
+        }
+        .input-focus:focus {
+            border-color: #659bb9;
+            box-shadow: 0 0 0 3px rgba(101, 155, 185, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-main rounded-3xl shadow-2xl p-10 max-w-md w-full">
+        <div class="text-center mb-10">
+            <div class="w-24 h-24 mx-auto mb-6 border-4 border-main-accent rounded-full flex items-center justify-center bg-main-accent shadow-lg">
+                <span class="text-5xl font-bold text-white">+</span>
+            </div>
+            <h1 class="text-5xl font-josefin-semibold text-main-accent mb-2">HealthCare</h1>
+            <p class="text-xl font-josefin-light text-gray-600">Reception Portal</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-josefin-semibold text-gray-700 mb-2">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    required
+                    autocomplete="username"
+                    class="w-full px-6 py-4 rounded-full bg-[#fdfae7] border-2 border-transparent input-focus outline-none font-josefin-light text-gray-800 placeholder-gray-500"
+                    placeholder="Enter your username"
+                >
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-josefin-semibold text-gray-700 mb-2">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    required
+                    autocomplete="current-password"
+                    class="w-full px-6 py-4 rounded-full bg-[#fdfae7] border-2 border-transparent input-focus outline-none font-josefin-light text-gray-800 placeholder-gray-500"
+                    placeholder="Enter your password"
+                >
+            </div>
+
+            <button 
+                type="submit" 
+                class="w-full py-5 bg-main-accent text-white rounded-full font-josefin-semibold text-xl hover:opacity-90 transition shadow-lg transform hover:scale-105"
+            >
+                Login
+            </button>
+        </form>
+
+        <div id="errorMsg" class="mt-6 p-4 bg-red-100 text-red-700 rounded-2xl text-center hidden font-josefin-light text-sm"></div>
+
+        <div class="mt-8 text-center text-sm text-gray-600 font-josefin-light space-y-1">
+            <p><strong>Default Credentials:</strong></p>
+            <p>Admin: <strong>admin</strong> / <strong>admin123</strong></p>
+            <p>Staff: <strong>staff1</strong> / <strong>staff123</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // Clear any stale local data
+        localStorage.clear();
+
+        // Force logout on page load (in case of stale session)
+        fetch('/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+
+        // Check if user is already logged in via server session
+        fetch('/check-auth', { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.logged_in) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userRole', data.role || 'reception');
+                    localStorage.setItem('userName', data.name || 'User');
+                    window.location.href = 'dashboard.html';
+                }
+            })
+            .catch(() => {
+                // Ignore errors — proceed to login form
+            });
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            // Reset error
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!username || !password) {
+                errorMsg.textContent = 'Please enter both username and password';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // Store session info
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userRole', data.role || 'reception');
+                    localStorage.setItem('userName', data.name || username);
+
+                    // Redirect to dashboard
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const result = await response.json();
+                    errorMsg.textContent = result.error || 'Invalid username or password';
+                    errorMsg.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMsg.textContent = 'Unable to connect to server. Please check if the backend is running.';
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
